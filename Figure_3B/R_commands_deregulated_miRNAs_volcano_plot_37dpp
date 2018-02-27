@@ -1,0 +1,150 @@
+data=read.csv('Intensities_Table.csv',header=T)
+prefix=substr(data$ProbeSet.Name,1,3)
+flag_f=data$Detection..HR_14.42f.CEL.[prefix=='mmu']
+expression_f=data$HR_14.42f.CEL[prefix=='mmu']
+flag_g=data$Detection..HR_14.42g.CEL.[prefix=='mmu']
+expression_g=data$HR_14.42g.CEL[prefix=='mmu']
+flag_h=data$Detection..HR_14.42h.CEL.[prefix=='mmu']
+expression_h=data$HR_14.42h.CEL[prefix=='mmu']
+flag_i=data$Detection..HR_14.42i.CEL.[prefix=='mmu']
+expression_i=data$HR_14.42i.CEL[prefix=='mmu']
+flag_j=data$Detection..HR_14.42j.CEL.[prefix=='mmu']
+expression_j=data$HR_14.42j.CEL[prefix=='mmu']
+flag_k=data$Detection..HR_14.42k.CEL.[prefix=='mmu']
+expression_k=data$HR_14.42k.CEL[prefix=='mmu']
+flag_l=data$Detection..HR_14.42l.CEL.[prefix=='mmu']
+expression_l=data$HR_14.42l.CEL[prefix=='mmu']
+name=data$ProbeSet.Name[prefix=='mmu']
+
+BAC_miR=c("mmu-miR-743a_st","mmu-miR-743b-3p_st","mmu-miR-743b-5p_st","mmu-miR-742-star_st","mmu-miR-742_st","mmu-miR-883a-3p_st","mmu-miR-883a-5p_st","mmu-miR-883b-3p_st","mmu-miR-883b-5p_st","mmu-miR-471_st","mmu-miR-741_st","mmu-miR-463-star_st","mmu-miR-463_st","mmu-miR-880_st","mmu-miR-878-3p_st","mmu-miR-878-5p_st","mmu-miR-881-star_st","mmu-miR-881_st","mmu-miR-871_st","mmu-miR-470-star_st","mmu-miR-470_st","mmu-miR-465c-3p_st","mmu-miR-465c-5p_st","mmu-miR-465b-3p_st","mmu-miR-465b-5p_st","mmu-miR-465c-3p_st","mmu-miR-465c-5p_st","mmu-miR-465b-3p_st","mmu-miR-465b-5p_st","mmu-miR-465a-3p_st","mmu-miR-465a-5p_st")
+
+
+library(limma)
+
+sink('FC_range.txt')
+
+y=matrix(c(expression_f,expression_j,expression_l,expression_h,expression_k),length(expression_f),5)
+rownames(y)=name
+design=model.matrix(~ 0+factor(c(1,1,1,2,2)))
+colnames(design) <- c("wt", "transgenic")
+fit=lmFit(y,design)
+cont.matrix=makeContrasts(TRvsWT=transgenic-wt, levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+#topTable(fit2, adjust="BH")
+ID=topTable(fit2, adjust="BH",n=Inf)$ID
+logFC=topTable(fit2, adjust="BH",n=Inf)$logFC
+FDR=topTable(fit2, adjust="BH",n=Inf)$adj.P.Val
+pval=topTable(fit2, adjust="BH",n=Inf)$P.Value
+
+print('wt vs Tg:')
+print(2^(c(min(logFC),max(logFC))))
+
+postscript('Volcano_plot_miRNA_wt_vs_Tg_FDR_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),FDR[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),FDR[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='FDR',col='red',main='wt/wt vs Tg/Tg at 37 dpp',axes=F)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+postscript('Volcano_plot_miRNA_wt_vs_Tg_p-value_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),pval[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),pval[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='p-value',col='red',main='wt/wt vs Tg/Tg at 37 dpp',axes=F)
+lines(c(1/50,50),c(0.05,0.05),lty=2)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+
+y=matrix(c(expression_f,expression_j,expression_l,expression_g,expression_i,expression_h,expression_k),length(expression_f),7)
+rownames(y)=name
+design=model.matrix(~ 0+factor(c(1,1,1,2,2,2,2)))
+colnames(design) <- c("wt", "transgenic")
+fit=lmFit(y,design)
+cont.matrix=makeContrasts(TRvsWT=transgenic-wt, levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+#topTable(fit2, adjust="BH")
+ID=topTable(fit2, adjust="BH",n=Inf)$ID
+logFC=topTable(fit2, adjust="BH",n=Inf)$logFC
+FDR=topTable(fit2, adjust="BH",n=Inf)$adj.P.Val
+pval=topTable(fit2, adjust="BH",n=Inf)$P.Value
+
+print('wt vs (hemi and Tg):')
+print(2^(c(min(logFC),max(logFC))))
+
+postscript('Volcano_plot_miRNA_wt_vs_hemi_and_Tg_FDR_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),FDR[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),FDR[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='FDR',col='red',main='wt/wt vs [Tg or wt]/Tg at 37 dpp',axes=F)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+postscript('Volcano_plot_miRNA_wt_vs_hemi_and_Tg_p-value_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),pval[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),pval[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='p-value',col='red',main='wt/wt vs [Tg or wt]/Tg at 37 dpp',axes=F)
+lines(c(1/50,50),c(0.05,0.05),lty=2)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+
+y=matrix(c(expression_f,expression_j,expression_l,expression_i,expression_h,expression_k),length(expression_f),6)
+rownames(y)=name
+design=model.matrix(~ 0+factor(c(1,1,1,2,2,2)))
+colnames(design) <- c("wt", "transgenic")
+fit=lmFit(y,design)
+cont.matrix=makeContrasts(TRvsWT=transgenic-wt, levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+#topTable(fit2, adjust="BH")
+ID=topTable(fit2, adjust="BH",n=Inf)$ID
+logFC=topTable(fit2, adjust="BH",n=Inf)$logFC
+FDR=topTable(fit2, adjust="BH",n=Inf)$adj.P.Val
+pval=topTable(fit2, adjust="BH",n=Inf)$P.Value
+
+print('wt vs (hemi and Tg, excluding "g"):')
+print(2^(c(min(logFC),max(logFC))))
+
+postscript('Volcano_plot_miRNA_excluding_g_FDR_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),FDR[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),FDR[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='FDR',col='red',main='wt/wt vs [Tg or wt]/Tg at 37 dpp, excluding "g"',axes=F)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+postscript('Volcano_plot_miRNA_excluding_g_p-value_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),pval[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),pval[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='p-value',col='red',main='wt/wt vs [Tg or wt]/Tg at 37 dpp, excluding "g"',axes=F)
+lines(c(1/50,50),c(0.05,0.05),lty=2)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+
+y=matrix(c(expression_f,expression_j,expression_l,expression_g,expression_i),length(expression_f),5)
+rownames(y)=name
+design=model.matrix(~ 0+factor(c(1,1,1,2,2)))
+colnames(design) <- c("wt", "transgenic")
+fit=lmFit(y,design)
+cont.matrix=makeContrasts(TRvsWT=transgenic-wt, levels=design)
+fit2 <- contrasts.fit(fit, cont.matrix)
+fit2 <- eBayes(fit2)
+#topTable(fit2, adjust="BH")
+ID=topTable(fit2, adjust="BH",n=Inf)$ID
+logFC=topTable(fit2, adjust="BH",n=Inf)$logFC
+FDR=topTable(fit2, adjust="BH",n=Inf)$adj.P.Val
+pval=topTable(fit2, adjust="BH",n=Inf)$P.Value
+
+print('wt vs hemi:')
+print(2^(c(min(logFC),max(logFC))))
+
+postscript('Volcano_plot_miRNA_wt_vs_hemi_FDR_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),FDR[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),FDR[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='FDR',col='red',main='wt/wt vs wt/Tg',axes=F)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+postscript('Volcano_plot_miRNA_wt_vs_hemi_p-value_37dpp.ps',horizontal=F,paper='special',width=7,height=5)
+plot(2^(logFC[!is.element(ID,BAC_miR)]),pval[!is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='',ylab='',axes=F)
+par(new=T)
+plot(2^(logFC[is.element(ID,BAC_miR)]),pval[is.element(ID,BAC_miR)],log='x',xlim=c(1/50,50),ylim=c(0,1),xlab='Fold-change',ylab='p-value',col='red',main='wt/wt vs wt/Tg',axes=F)
+lines(c(1/50,50),c(0.05,0.05),lty=2)
+axis(2);axis(1,labels=c('1/50','1/10','1/5','1/2',1,2,5,10,50),at=c(1/50,1/10,1/5,1/2,1,2,5,10,50))
+dev.off()
+
+sink()
