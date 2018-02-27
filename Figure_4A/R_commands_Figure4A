@@ -1,0 +1,17 @@
+data=read.csv('testisWeightsRV.csv',header=T)
+attach(data)
+library(car)
+for (genotype in c('wt','Tg'))
+for (age in c(5,8,11,15))
+{
+a=Weight[Genotype==genotype&Age==age]
+if (length(a) > 2)
+{
+print(shapiro.test(a)$p.value)
+print(shapiro.test(log(a))$p.value)
+}
+}
+
+leveneTest(Weight~Genotype*as.factor(Age))
+
+anova(lm(Weight~Genotype+as.factor(Age)))
